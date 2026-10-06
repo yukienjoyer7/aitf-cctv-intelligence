@@ -1,25 +1,90 @@
-import json, glob
-from pathlib import Path
-import numpy as np, pandas as pd
+"""Aggregate the per-run JSON files in results/sr/ into summary tables.
+
+Writes:
+    results/sr_summary.csv  mean +/- 95% CI over folds, per (dataset, task, model)
+    results/sr_paired.csv   paired per-fold differences between models
+
+Fairness rule: for each (dataset, task) only folds where ALL THREE models finished are used, so every model is
+averaged over the same folds. This matters because the benchmark was stopped early and some folds are missing.
+Intervals are across folds (the independent units), not across images or seeds. A CI needs >= 3 folds.
+
+Usage: python src/aggregate_sr.py
+"""
+
+import glob
+import json
+
+import numpy as np
+import pandas as pd
 from scipy import stats
-R = Path(__file__).resolve().parents[1] / "results"
-d = pd.DataFrame([json.load(open(f)) for f in glob.glob(str(R / "sr/*.json"))])
-M = ["yolo26n", "yolo26s", "rtdetr-l"]
-def ci(v):
-    v = np.asarray(v, float); n = len(v)
-    return v.mean(), (stats.t.ppf(.975, n - 1) * v.std(ddof=1) / np.sqrt(n) if n > 2 else np.nan)
-rows, pr = [], []
-for (ds, t), x in d.groupby(["dataset", "task"]):
-    P = x.pivot(index="fold", columns="model", values="map50_95").reindex(columns=M); full = P.dropna().index.tolist()  # folds where all 3 models finished
-    for m in M:
-        y = x[(x.model == m) & x.fold.isin(full)].sort_values("fold")
-        r = {"dataset": ds, "task": t, "model": m, "folds_used": len(full), "folds": ",".join(map(str, full))}
-        for c in ["map50", "map50_95", "class_acc_matched", "train_min"]:
-            if c in y and y[c].notna().any(): r[c], r[c + "_ci"] = ci(y[c].dropna())
-        rows.append(r)
-    for a, b in [("yolo26s", "yolo26n"), ("rtdetr-l", "yolo26n"), ("rtdetr-l", "yolo26s")]:
-        if len(full) >= 3:
-            dif = (P.loc[full, a] - P.loc[full, b]).values; m_, c_ = ci(dif); pr.append({"dataset": ds, "task": t, "A": a, "B": b, "diff": m_, "ci": c_, "folds_A_better": int((dif > 0).sum()), "n_folds": len(full)})
-s = pd.DataFrame(rows); s.to_csv(R / "sr_summary.csv", index=False); p = pd.DataFrame(pr); p.to_csv(R / "sr_paired.csv", index=False)
-pd.set_option("display.width", 250); pd.set_option("display.max_columns", 30)
-print(s.round(3).to_string()); print(p.round(3).to_string()); print(d.groupby(["dataset", "task", "model"]).size().unstack().to_string())
+
+from common import MODELS, RESULTS
+
+METRICS = ["map50", "map50_95", "class_acc_matched", "train_min"]
+# (A, B): reported as A minus B
+PAIRS = [("yolo26s", "yolo26n"), ("rtdetr-l", "yolo26n"), ("rtdetr-l", "yolo26s")]
+
+
+def mean_ci(values) -> tuple[float, float]:
+    """Mean and 95% t-confidence half-width (NaN with fewer than 3 values)."""
+    v = np.asarray(values, float)
+    n = len(v)
+    half_width = stats.t.ppf(0.975, n - 1) * v.std(ddof=1) / np.sqrt(n) if n > 2 else np.nan
+    return v.mean(), half_width
+
+
+def main() -> None:
+    runs = pd.DataFrame([json.load(open(f)) for f in glob.glob(str(RESULTS / "sr/*.json"))])
+    summary_rows, paired_rows = [], []
+
+    for (dataset, task), group in runs.groupby(["dataset", "task"]):
+        # one row per fold, one column per model; keep folds where all three models have a result
+        by_fold = group.pivot(index="fold", columns="model", values="map50_95").reindex(columns=list(MODELS))
+        folds = by_fold.dropna().index.tolist()
+
+        for model in MODELS:
+            rows = group[(group.model == model) & group.fold.isin(folds)].sort_values("fold")
+            row = {
+                "dataset": dataset,
+                "task": task,
+                "model": model,
+                "folds_used": len(folds),
+                "folds": ",".join(map(str, folds)),
+            }
+            for metric in METRICS:
+                if metric in rows and rows[metric].notna().any():
+                    row[metric], row[metric + "_ci"] = mean_ci(rows[metric].dropna())
+            summary_rows.append(row)
+
+        # paired comparison: per-fold difference between two models, then mean +/- CI of those differences
+        for a, b in PAIRS:
+            if len(folds) >= 3:
+                diff = (by_fold.loc[folds, a] - by_fold.loc[folds, b]).values
+                mean, ci = mean_ci(diff)
+                paired_rows.append(
+                    {
+                        "dataset": dataset,
+                        "task": task,
+                        "A": a,
+                        "B": b,
+                        "diff": mean,
+                        "ci": ci,
+                        "folds_A_better": int((diff > 0).sum()),
+                        "n_folds": len(folds),
+                    }
+                )
+
+    summary = pd.DataFrame(summary_rows)
+    paired = pd.DataFrame(paired_rows)
+    summary.to_csv(RESULTS / "sr_summary.csv", index=False)
+    paired.to_csv(RESULTS / "sr_paired.csv", index=False)
+
+    pd.set_option("display.width", 250)
+    pd.set_option("display.max_columns", 30)
+    print(summary.round(3).to_string())
+    print(paired.round(3).to_string())
+    print(runs.groupby(["dataset", "task", "model"]).size().unstack().to_string())  # runs per cell
+
+
+if __name__ == "__main__":
+    main()
