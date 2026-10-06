@@ -64,9 +64,8 @@ def main(dataset_dir: Path) -> None:
     n_female = sum(c in people and names[c].startswith("Female") for c in all_classes)
     n_male = n_people - n_female
     print(f"static (window/door) boxes: {n_static}/{len(all_classes)} = {n_static / len(all_classes) * 100:.0f}% of all boxes")
-    print(
-        f"people boxes: {n_people} (Female {n_female} = {n_female / n_people * 100:.0f}%, Male {n_male} = {n_male / n_people * 100:.0f}%)"
-    )
+    female_pct, male_pct = n_female / n_people * 100, n_male / n_people * 100
+    print(f"people boxes: {n_people} (Female {n_female} = {female_pct:.0f}%, Male {n_male} = {male_pct:.0f}%)")
 
     # --- static-label leakage: do valid/test window boxes sit where a train window box sits? ---
     train_static = [(c, b) for k, (_, boxes) in frames.items() if k[0] == "train" for c, b in boxes if c not in people]
