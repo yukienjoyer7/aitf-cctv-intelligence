@@ -1,52 +1,129 @@
-"""CCTV-SR indoor/outdoor -> leakage-aware blocked 5-fold CV, one folder tree per task.
+"""Build leakage-aware cross-validation folds for the CCTV-SR indoor/outdoor datasets.
 
-The Roboflow splits are random over consecutive frames of ONE fixed camera (near-duplicate leakage), so all splits are
-pooled, sorted by frame id and cut into K contiguous blocks. Train frames within BUF frame-ids of the held-out block are dropped.
-Quad labels are converted to enclosing boxes.
-Tasks (class remaps):
-  indoor : person (all people), gender (F/M), allclass (3 classes incl. windows)
-  outdoor: person, gender (F/M, posture merged), posture (Sitting/Standing/Walking, gender merged), allclass (9 classes)
-Images with no relevant boxes are kept as background images.
+Why: the Roboflow train/valid/test split is random over consecutive frames of ONE fixed camera, so every
+test frame has near-identical neighbours in train. Instead, all frames are pooled, sorted by frame id and cut
+into K contiguous time blocks. Each block is the test set once, and train frames within BUFFER frame ids of
+that block are dropped so the model never trains on near-copies of test frames.
+
+Tasks are different class mappings over the SAME boxes:
+    indoor : person (all people) | gender (female/male) | allclass (3 original classes, incl. windows)
+    outdoor: person | gender (posture merged) | posture (sitting/standing/walking, gender merged) | allclass (9)
+Images with no box for a task are kept as background images.
+
+Output (images are symlinks to the originals, labels are rewritten):
+    data/sr/<dataset>/<task>/fold<k>/{train,test}/{images,labels}/  and  fold<k>/data.yaml
+    data/sr/manifest.json   fold sizes and test frame-id ranges
+
+Usage: python src/prep_sr.py     (expects the unzipped exports in data/indoor and data/outdoor)
 """
-import re, shutil, json
-from pathlib import Path
-import numpy as np, yaml
 
-ROOT = Path(__file__).resolve().parents[1]; OUT = ROOT / "data" / "sr"; K = 5
-BUF = {"indoor": 5, "outdoor": 10}
-def remap(names):
-    idx = {n: i for i, n in enumerate(names)}; people = [n for n in names if n.startswith(("Female_", "Male_"))]
-    T = {"person": ({n: 0 for n in people}, ["person"]),
-         "gender": ({n: (0 if n.startswith("Female") else 1) for n in people}, ["female", "male"]),
-         "allclass": ({n: i for i, n in enumerate(names)}, list(names))}
-    posts = sorted({n.split("_")[1] for n in people})
-    if len(posts) > 1: T["posture"] = ({n: posts.index(n.split("_")[1]) for n in people}, [p.lower() for p in posts])
-    return idx, T
-manifest = {}
-for ds in ["indoor", "outdoor"]:
-    src = ROOT / "data" / ds; names = yaml.safe_load((src / "data.yaml").read_text())["names"]; idx, TASKS = remap(names)
-    fr = []
-    for sp in ["train", "valid", "test"]:
-        for im in (src / sp / "images").glob("*.jpg"):
-            fid = int(re.search(r"frame_0*(\d+)", im.name).group(1)); L = []
-            for ln in (src / sp / "labels" / (im.stem + ".txt")).read_text().splitlines():
-                c, *v = ln.split(); v = list(map(float, v))
-                if len(v) > 4: xs, ys = v[0::2], v[1::2]; v = [(min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, max(xs) - min(xs), max(ys) - min(ys)]
-                L.append((names[int(c)], v))
-            fr.append((fid, im, L))
-    fr.sort(key=lambda t: t[0]); n = len(fr); blocks = np.array_split(np.arange(n), 5); manifest[ds] = {"n": n, "folds": {}}
-    for task, (mp, tnames) in TASKS.items():
-        t_out = OUT / ds / task
-        if t_out.exists(): shutil.rmtree(t_out)
-        for k, blk in enumerate(blocks):
-            lo, hi = fr[blk[0]][0] - BUF[ds], fr[blk[-1]][0] + BUF[ds]
-            test = [fr[i] for i in blk]; train = [f for i, f in enumerate(fr) if not (lo <= f[0] <= hi)]
-            manifest[ds]["folds"][k] = {"n_train": len(train), "n_test": len(test), "test_ids": [test[0][0], test[-1][0]]}
-            for split, items in [("train", train), ("test", test)]:
-                d = t_out / f"fold{k}" / split; (d / "images").mkdir(parents=True); (d / "labels").mkdir(parents=True)
-                for fid, im, L in items:
-                    (d / "images" / f"f{fid:04d}.jpg").symlink_to(im.resolve())
-                    (d / "labels" / f"f{fid:04d}.txt").write_text("".join(f"{mp[nm]} " + " ".join(f"{x:.6f}" for x in v) + "\n" for nm, v in L if nm in mp))
-            (t_out / f"fold{k}" / "data.yaml").write_text(f"path: {t_out / f'fold{k}'}\ntrain: train/images\nval: test/images\ntest: test/images\nnc: {len(tnames)}\nnames: {tnames}\n")
-    print(ds, n, "frames; tasks:", list(TASKS), "; folds (train/test):", [(v["n_train"], v["n_test"]) for v in manifest[ds]["folds"].values()])
-(OUT / "manifest.json").write_text(json.dumps(manifest, indent=1))
+import json
+import re
+import shutil
+
+import numpy as np
+
+from common import DATA, DATASETS, SPLITS, class_names, is_person, parse_label_line
+
+OUT = DATA / "sr"
+N_FOLDS = 5
+# Frames (by frame id) removed from train around each test block. Outdoor uses a wider buffer because it
+# has many more frames per second of recording.
+BUFFER = {"indoor": 5, "outdoor": 10}
+
+
+def task_mappings(names: list[str]) -> dict[str, tuple[dict[str, int], list[str]]]:
+    """For every task: ({original class name -> new class id}, [new class names]).
+
+    Original classes missing from the mapping (e.g. windows in the person task) are dropped.
+    """
+    people = [n for n in names if is_person(n)]
+    tasks = {
+        "person": ({n: 0 for n in people}, ["person"]),
+        "gender": ({n: 0 if n.startswith("Female") else 1 for n in people}, ["female", "male"]),
+        "allclass": ({n: i for i, n in enumerate(names)}, list(names)),
+    }
+    postures = sorted({n.split("_")[1] for n in people})  # Sitting / Standing / Walking
+    if len(postures) > 1:  # indoor only has "Sitting", so it has no posture task
+        tasks["posture"] = ({n: postures.index(n.split("_")[1]) for n in people}, [p.lower() for p in postures])
+    return tasks
+
+
+def load_frames(dataset: str, names: list[str]):
+    """Pool the original train/valid/test frames.
+
+    Returns [(frame_id, image_path, [(class_name, box)])] sorted by frame id.
+    """
+    src = DATA / dataset
+    frames = []
+    for split in SPLITS:
+        for image in (src / split / "images").glob("*.jpg"):
+            frame_id = int(re.search(r"frame_0*(\d+)", image.name).group(1))
+            label_file = src / split / "labels" / (image.stem + ".txt")
+            boxes = []
+            for line in label_file.read_text().splitlines():
+                class_id, box = parse_label_line(line)
+                boxes.append((names[class_id], box))
+            frames.append((frame_id, image, boxes))
+    frames.sort(key=lambda f: f[0])
+    return frames
+
+
+def write_fold(task_dir, fold, split, items, mapping):
+    """Write one split of one fold: image symlinks plus label files remapped to the task's classes."""
+    folder = task_dir / f"fold{fold}" / split
+    (folder / "images").mkdir(parents=True)
+    (folder / "labels").mkdir(parents=True)
+    for frame_id, image, boxes in items:
+        (folder / "images" / f"f{frame_id:04d}.jpg").symlink_to(image.resolve())
+        lines = "".join(
+            f"{mapping[name]} " + " ".join(f"{x:.6f}" for x in box) + "\n"
+            for name, box in boxes
+            if name in mapping
+        )
+        (folder / "labels" / f"f{frame_id:04d}.txt").write_text(lines)
+
+
+def main() -> None:
+    manifest = {}
+    for dataset in DATASETS:
+        names = class_names(DATA / dataset)
+        tasks = task_mappings(names)
+        frames = load_frames(dataset, names)
+        blocks = np.array_split(np.arange(len(frames)), N_FOLDS)  # contiguous blocks in time order
+
+        # Which frames go to train/test in each fold (the same for every task).
+        folds = []
+        for block in blocks:
+            test = [frames[i] for i in block]
+            lo = frames[block[0]][0] - BUFFER[dataset]
+            hi = frames[block[-1]][0] + BUFFER[dataset]
+            train = [f for f in frames if not lo <= f[0] <= hi]  # drop test block + buffer from train
+            folds.append((train, test))
+        manifest[dataset] = {
+            "n": len(frames),
+            "folds": {
+                k: {"n_train": len(tr), "n_test": len(te), "test_ids": [te[0][0], te[-1][0]]}
+                for k, (tr, te) in enumerate(folds)
+            },
+        }
+
+        for task, (mapping, task_classes) in tasks.items():
+            task_dir = OUT / dataset / task
+            if task_dir.exists():
+                shutil.rmtree(task_dir)
+            for k, (train, test) in enumerate(folds):
+                write_fold(task_dir, k, "train", train, mapping)
+                write_fold(task_dir, k, "test", test, mapping)
+                (task_dir / f"fold{k}" / "data.yaml").write_text(
+                    f"path: {task_dir / f'fold{k}'}\ntrain: train/images\nval: test/images\ntest: test/images\n"
+                    f"nc: {len(task_classes)}\nnames: {task_classes}\n"
+                )
+        sizes = [(v["n_train"], v["n_test"]) for v in manifest[dataset]["folds"].values()]
+        print(dataset, len(frames), "frames; tasks:", list(tasks), "; folds (train/test):", sizes)
+
+    (OUT / "manifest.json").write_text(json.dumps(manifest, indent=1))
+
+
+if __name__ == "__main__":
+    main()
