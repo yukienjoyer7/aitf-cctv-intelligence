@@ -1,0 +1,58 @@
+{
+ "dataset": "outdoor",
+ "task": "allclass",
+ "model": "yolo26n",
+ "fold": 0,
+ "seed": 0,
+ "epochs": 30,
+ "batch": 8,
+ "map50": 0.3875475500292971,
+ "map50_95": 0.30416443762471995,
+ "train_min": 2.2649502038955687,
+ "per_class": {
+  "Door_Close": {
+   "map50": 0.6448803927602684,
+   "map50_95": 0.508089246905979
+  },
+  "Female_Standing": {
+   "map50": 0.19540469621631334,
+   "map50_95": 0.15754863198421803
+  },
+  "Female_Walking": {
+   "map50": 0.6519820760450348,
+   "map50_95": 0.541770647481945
+  },
+  "Male_Sitting": {
+   "map50": 0.0,
+   "map50_95": 0.0
+  },
+  "Male_Standing": {
+   "map50": 0.08610527404693968,
+   "map50_95": 0.06280973052634742
+  },
+  "Male_Walking": {
+   "map50": 0.6288535484470912,
+   "map50_95": 0.4783533688602639
+  },
+  "Window_Close": {
+   "map50": 0.6287617911179144,
+   "map50_95": 0.4871844069441468
+  },
+  "Window_Open": {
+   "map50": 0.2643926216008151,
+   "map50_95": 0.19755946829485904
+  }
+ },
+ "test_instances": {
+  "Door_Close": 447,
+  "Female_Sitting": 0,
+  "Female_Standing": 27,
+  "Female_Walking": 61,
+  "Male_Sitting": 7,
+  "Male_Standing": 152,
+  "Male_Walking": 128,
+  "Window_Close": 5807,
+  "Window_Open": 60
+ },
+ "n_test_images": 187
+}

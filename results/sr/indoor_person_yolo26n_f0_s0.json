@@ -1,0 +1,22 @@
+{
+ "dataset": "indoor",
+ "task": "person",
+ "model": "yolo26n",
+ "fold": 0,
+ "seed": 0,
+ "epochs": 100,
+ "batch": 8,
+ "map50": 0.9574353528945193,
+ "map50_95": 0.6758075013395738,
+ "train_min": 1.302289891242981,
+ "per_class": {
+  "person": {
+   "map50": 0.9574353528945193,
+   "map50_95": 0.6758075013395738
+  }
+ },
+ "test_instances": {
+  "person": 391
+ },
+ "n_test_images": 25
+}

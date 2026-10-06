@@ -1,0 +1,32 @@
+{
+ "dataset": "indoor",
+ "task": "allclass",
+ "model": "rtdetr-l",
+ "fold": 4,
+ "seed": 0,
+ "epochs": 100,
+ "batch": 4,
+ "map50": 0.9345305617354281,
+ "map50_95": 0.6787142791848997,
+ "train_min": 8.08984436194102,
+ "per_class": {
+  "Female_Sitting": {
+   "map50": 0.9769590153253522,
+   "map50_95": 0.7457420932953538
+  },
+  "Male_Sitting": {
+   "map50": 0.9713038957934991,
+   "map50_95": 0.6897112875752697
+  },
+  "Window_Close": {
+   "map50": 0.8553287740874331,
+   "map50_95": 0.6006894566840757
+  }
+ },
+ "test_instances": {
+  "Female_Sitting": 318,
+  "Male_Sitting": 79,
+  "Window_Close": 114
+ },
+ "n_test_images": 25
+}

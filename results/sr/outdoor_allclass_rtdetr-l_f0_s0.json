@@ -1,0 +1,58 @@
+{
+ "dataset": "outdoor",
+ "task": "allclass",
+ "model": "rtdetr-l",
+ "fold": 0,
+ "seed": 0,
+ "epochs": 30,
+ "batch": 4,
+ "map50": 0.4348251799751976,
+ "map50_95": 0.3702700377142515,
+ "train_min": 16.04022051890691,
+ "per_class": {
+  "Door_Close": {
+   "map50": 0.6482176177659238,
+   "map50_95": 0.5613555706085692
+  },
+  "Female_Standing": {
+   "map50": 0.13824971632214367,
+   "map50_95": 0.11294033593734583
+  },
+  "Female_Walking": {
+   "map50": 0.9474081657949471,
+   "map50_95": 0.8664202219388996
+  },
+  "Male_Sitting": {
+   "map50": 0.004637096774193548,
+   "map50_95": 0.003300464833198689
+  },
+  "Male_Standing": {
+   "map50": 0.345113136412053,
+   "map50_95": 0.2355133604228971
+  },
+  "Male_Walking": {
+   "map50": 0.5993691229297229,
+   "map50_95": 0.5363615435583816
+  },
+  "Window_Close": {
+   "map50": 0.5099445484299746,
+   "map50_95": 0.4365919960708056
+  },
+  "Window_Open": {
+   "map50": 0.28566203537262214,
+   "map50_95": 0.20967680834391467
+  }
+ },
+ "test_instances": {
+  "Door_Close": 447,
+  "Female_Sitting": 0,
+  "Female_Standing": 27,
+  "Female_Walking": 61,
+  "Male_Sitting": 7,
+  "Male_Standing": 152,
+  "Male_Walking": 128,
+  "Window_Close": 5807,
+  "Window_Open": 60
+ },
+ "n_test_images": 187
+}

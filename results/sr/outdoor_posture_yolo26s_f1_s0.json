@@ -1,0 +1,34 @@
+{
+ "dataset": "outdoor",
+ "task": "posture",
+ "model": "yolo26s",
+ "fold": 1,
+ "seed": 0,
+ "epochs": 30,
+ "batch": 8,
+ "map50": 0.32656539564634085,
+ "map50_95": 0.2023356314550444,
+ "train_min": 3.2804906209309896,
+ "per_class": {
+  "sitting": {
+   "map50": 0.00851407742584213,
+   "map50_95": 0.0014918754538852576
+  },
+  "standing": {
+   "map50": 0.37971667413707977,
+   "map50_95": 0.24455774944624992
+  },
+  "walking": {
+   "map50": 0.5914654353761006,
+   "map50_95": 0.3609572694649981
+  }
+ },
+ "test_instances": {
+  "sitting": 89,
+  "standing": 44,
+  "walking": 39
+ },
+ "n_test_images": 187,
+ "class_acc_matched": 0.7843137254901961,
+ "matched": 51
+}

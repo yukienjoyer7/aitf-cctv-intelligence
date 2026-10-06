@@ -1,0 +1,22 @@
+{
+ "dataset": "outdoor",
+ "task": "person",
+ "model": "rtdetr-l",
+ "fold": 2,
+ "seed": 0,
+ "epochs": 30,
+ "batch": 4,
+ "map50": 0.47095330656392975,
+ "map50_95": 0.4149836379741525,
+ "train_min": 15.851675244172414,
+ "per_class": {
+  "person": {
+   "map50": 0.47095330656392975,
+   "map50_95": 0.4149836379741525
+  }
+ },
+ "test_instances": {
+  "person": 130
+ },
+ "n_test_images": 187
+}

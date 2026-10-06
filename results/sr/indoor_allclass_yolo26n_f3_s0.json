@@ -1,0 +1,32 @@
+{
+ "dataset": "indoor",
+ "task": "allclass",
+ "model": "yolo26n",
+ "fold": 3,
+ "seed": 0,
+ "epochs": 100,
+ "batch": 8,
+ "map50": 0.9667191617817225,
+ "map50_95": 0.7114660947742952,
+ "train_min": 1.239555013179779,
+ "per_class": {
+  "Female_Sitting": {
+   "map50": 0.9910796217677399,
+   "map50_95": 0.7202258402259447
+  },
+  "Male_Sitting": {
+   "map50": 0.985,
+   "map50_95": 0.7138356363492209
+  },
+  "Window_Close": {
+   "map50": 0.9240778635774274,
+   "map50_95": 0.7003368077477206
+  }
+ },
+ "test_instances": {
+  "Female_Sitting": 325,
+  "Male_Sitting": 76,
+  "Window_Close": 119
+ },
+ "n_test_images": 25
+}

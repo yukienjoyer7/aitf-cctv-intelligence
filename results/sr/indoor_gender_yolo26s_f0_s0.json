@@ -1,0 +1,29 @@
+{
+ "dataset": "indoor",
+ "task": "gender",
+ "model": "yolo26s",
+ "fold": 0,
+ "seed": 0,
+ "epochs": 100,
+ "batch": 8,
+ "map50": 0.9613504134389774,
+ "map50_95": 0.7139346556369627,
+ "train_min": 2.1726986209551495,
+ "per_class": {
+  "female": {
+   "map50": 0.9850612946063205,
+   "map50_95": 0.7238466291243588
+  },
+  "male": {
+   "map50": 0.9376395322716343,
+   "map50_95": 0.7040226821495666
+  }
+ },
+ "test_instances": {
+  "female": 300,
+  "male": 91
+ },
+ "n_test_images": 25,
+ "class_acc_matched": 1.0,
+ "matched": 378
+}

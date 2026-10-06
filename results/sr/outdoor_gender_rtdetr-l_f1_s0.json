@@ -1,0 +1,29 @@
+{
+ "dataset": "outdoor",
+ "task": "gender",
+ "model": "rtdetr-l",
+ "fold": 1,
+ "seed": 0,
+ "epochs": 30,
+ "batch": 4,
+ "map50": 0.16145904575614295,
+ "map50_95": 0.10388411391317891,
+ "train_min": 15.670649143060048,
+ "per_class": {
+  "female": {
+   "map50": 0.0519767441860465,
+   "map50_95": 0.015342513437315075
+  },
+  "male": {
+   "map50": 0.2709413473262394,
+   "map50_95": 0.19242571438904274
+  }
+ },
+ "test_instances": {
+  "female": 4,
+  "male": 168
+ },
+ "n_test_images": 187,
+ "class_acc_matched": 0.9125,
+ "matched": 80
+}

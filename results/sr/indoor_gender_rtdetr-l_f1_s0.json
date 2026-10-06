@@ -1,0 +1,29 @@
+{
+ "dataset": "indoor",
+ "task": "gender",
+ "model": "rtdetr-l",
+ "fold": 1,
+ "seed": 0,
+ "epochs": 100,
+ "batch": 4,
+ "map50": 0.9619784186629159,
+ "map50_95": 0.6480749370509745,
+ "train_min": 12.16333794593811,
+ "per_class": {
+  "female": {
+   "map50": 0.9848831350731202,
+   "map50_95": 0.6945678828106122
+  },
+  "male": {
+   "map50": 0.9390737022527116,
+   "map50_95": 0.6015819912913366
+  }
+ },
+ "test_instances": {
+  "female": 316,
+  "male": 106
+ },
+ "n_test_images": 25,
+ "class_acc_matched": 0.9975786924939467,
+ "matched": 413
+}

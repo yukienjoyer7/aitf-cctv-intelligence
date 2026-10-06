@@ -1,0 +1,22 @@
+{
+ "dataset": "outdoor",
+ "task": "person",
+ "model": "yolo26s",
+ "fold": 0,
+ "seed": 0,
+ "epochs": 30,
+ "batch": 8,
+ "map50": 0.5550766666263278,
+ "map50_95": 0.42618402489201984,
+ "train_min": 3.367696392536163,
+ "per_class": {
+  "person": {
+   "map50": 0.5550766666263278,
+   "map50_95": 0.42618402489201984
+  }
+ },
+ "test_instances": {
+  "person": 375
+ },
+ "n_test_images": 187
+}

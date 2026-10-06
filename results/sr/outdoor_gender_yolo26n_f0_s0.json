@@ -1,0 +1,29 @@
+{
+ "dataset": "outdoor",
+ "task": "gender",
+ "model": "yolo26n",
+ "fold": 0,
+ "seed": 0,
+ "epochs": 30,
+ "batch": 8,
+ "map50": 0.7236034881413451,
+ "map50_95": 0.5548835434415429,
+ "train_min": 2.0562576691309613,
+ "per_class": {
+  "female": {
+   "map50": 0.8149787512400624,
+   "map50_95": 0.6731252178695418
+  },
+  "male": {
+   "map50": 0.6322282250426278,
+   "map50_95": 0.43664186901354396
+  }
+ },
+ "test_instances": {
+  "female": 88,
+  "male": 287
+ },
+ "n_test_images": 187,
+ "class_acc_matched": 0.6473214285714286,
+ "matched": 224
+}

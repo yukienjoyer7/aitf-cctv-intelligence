@@ -1,0 +1,22 @@
+{
+ "dataset": "indoor",
+ "task": "person",
+ "model": "rtdetr-l",
+ "fold": 4,
+ "seed": 0,
+ "epochs": 100,
+ "batch": 4,
+ "map50": 0.9748963729713481,
+ "map50_95": 0.7371525380537775,
+ "train_min": 8.249973758061726,
+ "per_class": {
+  "person": {
+   "map50": 0.9748963729713481,
+   "map50_95": 0.7371525380537775
+  }
+ },
+ "test_instances": {
+  "person": 397
+ },
+ "n_test_images": 25
+}
