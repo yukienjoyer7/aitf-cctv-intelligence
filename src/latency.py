@@ -1,50 +1,116 @@
-"""Latency / complexity benchmark (batch 1, 512x512). Reports model-only and end-to-end (pre+infer+post)."""
-import json, time, glob, statistics as st, sys
-from pathlib import Path
-import numpy as np, torch, cv2
-from ultralytics import YOLO, RTDETR
+"""Latency and complexity benchmark: batch 1, 512x512, for YOLO26n / YOLO26s / RT-DETR-L.
+
+For each model and setting (GPU fp32, GPU fp16, CPU fp32) it reports, over many timed iterations after a warm-up:
+  * model-only time: just the network forward pass (conv+BN fused, as Ultralytics' predict() does);
+  * end-to-end time: preprocessing + forward pass + postprocessing (NMS for YOLO, none for RT-DETR) via predict();
+  * mean / std / median / p95, FPS, peak GPU memory, parameters and GFLOPs.
+GPU timings call cuda.synchronize() around every iteration so queued kernels are included.
+
+Provenance note: results/latency.json was produced by an earlier revision of this script that loaded fold-0
+weights from a pilot experiment (2-class head) and a pilot frame. Latency depends on the architecture, not on the
+trained weight values, so this version uses the pretrained COCO checkpoints and a CCTV-SR frame instead; the
+numbers are expected to agree up to run-to-run noise (laptop GPU, so thermal throttling is possible).
+
+Usage: python src/latency.py        (needs a GPU; run with nothing else using it)
+"""
+
+import glob
+import json
+import statistics
+import time
+
+import cv2
+import torch
+from ultralytics import RTDETR, YOLO
 from ultralytics.utils.torch_utils import get_flops
 
-ROOT = Path(__file__).resolve().parents[1]
-SZ = 512
-img = cv2.imread(sorted(glob.glob(str(ROOT / "data/folds/gender/fold0/test/images/*.jpg")))[0])
-img = cv2.resize(img, (SZ, SZ))
+from common import DATA, IMG_SIZE, MODELS, RESULTS
 
-def stats(ts):
-    ts = sorted(ts); n = len(ts)
-    return {"mean": st.mean(ts), "std": st.pstdev(ts), "median": ts[n // 2], "p95": ts[int(n * .95) - 1], "n": n}
+# (device, half precision, timed iterations, warm-up iterations); CPU is slow, so fewer iterations
+SETTINGS = [("cuda", False, 300, 50), ("cuda", True, 300, 50), ("cpu", False, 40, 5)]
+CPU_THREADS = 8
 
-def timeit(fn, n, warm, cuda):
-    for _ in range(warm): fn()
-    ts = []
+
+def summarise(times_ms: list[float]) -> dict:
+    times = sorted(times_ms)
+    n = len(times)
+    return {
+        "mean": statistics.mean(times),
+        "std": statistics.pstdev(times),
+        "median": times[n // 2],
+        "p95": times[int(n * 0.95) - 1],
+        "n": n,
+    }
+
+
+def time_it(fn, n: int, warmup: int, cuda: bool) -> dict:
+    """Run `fn` `warmup` times untimed, then time `n` calls in milliseconds."""
+    for _ in range(warmup):
+        fn()
+    times = []
     for _ in range(n):
-        if cuda: torch.cuda.synchronize()
-        t = time.perf_counter(); fn()
-        if cuda: torch.cuda.synchronize()
-        ts.append((time.perf_counter() - t) * 1e3)
-    return stats(ts)
+        if cuda:
+            torch.cuda.synchronize()  # make sure earlier GPU work is finished before starting the clock
+        start = time.perf_counter()
+        fn()
+        if cuda:
+            torch.cuda.synchronize()  # ... and that this call's GPU work is finished before stopping it
+        times.append((time.perf_counter() - start) * 1e3)
+    return summarise(times)
 
-out = {"gpu": torch.cuda.get_device_name(0), "torch": torch.__version__, "imgsz": SZ, "models": {}}
-for name in ["yolo26n", "yolo26s", "rtdetr-l"]:
-    cls = RTDETR if name.startswith("rtdetr") else YOLO
-    w = ROOT / "runs" / f"{name}_gender_f0_s0" / "weights" / "last.pt"
-    y = cls(str(w if w.exists() else f"{name}.pt"))
-    params = sum(p.numel() for p in y.model.parameters())
-    r = {"params_M": params / 1e6, "gflops": get_flops(y.model, SZ)}
-    for dev, half, n, warm in [("cuda", False, 300, 50), ("cuda", True, 300, 50), ("cpu", False, 40, 5)]:
-        key = f"{dev}_{'fp16' if half else 'fp32'}"
-        if dev == "cpu": torch.set_num_threads(8)
-        y = cls(str(w if w.exists() else f"{name}.pt")); y.to(dev)
-        y.fuse(); net = y.model.to(dev).eval()  # fuse conv+bn, as predict() does
-        if half: net = net.half()
-        x = torch.rand(1, 3, SZ, SZ, device=dev, dtype=torch.half if half else torch.float32)
-        if dev == "cuda": torch.cuda.reset_peak_memory_stats()
-        with torch.inference_mode():
-            mo = timeit(lambda: net(x), n, warm, dev == "cuda")
-            e2e = timeit(lambda: y.predict(img, imgsz=SZ, conf=0.25, device=dev, half=half, verbose=False), n, warm, dev == "cuda")
-        r[key] = {"model_only_ms": mo, "end_to_end_ms": e2e, "fps_e2e": 1e3 / e2e["mean"]}
-        if dev == "cuda": r[key]["peak_mem_MB"] = torch.cuda.max_memory_allocated() / 2**20
-        print(name, key, round(mo["mean"], 2), round(e2e["mean"], 2), flush=True)
-    out["models"][name] = r
-(ROOT / "results").mkdir(exist_ok=True)
-(ROOT / "results" / "latency.json").write_text(json.dumps(out, indent=1))
+
+def benchmark_setting(model_cls, name: str, frame, device: str, half: bool, n: int, warmup: int) -> dict:
+    """Time one model in one setting (fresh model instance so settings do not affect each other)."""
+    wrapper = model_cls(f"{name}.pt")
+    wrapper.to(device)
+    wrapper.fuse()  # fuse conv+BN, as predict() does
+    net = wrapper.model.to(device).eval()
+    if half:
+        net = net.half()
+    x = torch.rand(1, 3, IMG_SIZE, IMG_SIZE, device=device, dtype=torch.half if half else torch.float32)
+    cuda = device == "cuda"
+    if cuda:
+        torch.cuda.reset_peak_memory_stats()
+
+    with torch.inference_mode():
+        model_only = time_it(lambda: net(x), n, warmup, cuda)
+        end_to_end = time_it(
+            lambda: wrapper.predict(frame, imgsz=IMG_SIZE, conf=0.25, device=device, half=half, verbose=False), n, warmup, cuda
+        )
+    result = {"model_only_ms": model_only, "end_to_end_ms": end_to_end, "fps_e2e": 1e3 / end_to_end["mean"]}
+    if cuda:
+        result["peak_mem_MB"] = torch.cuda.max_memory_allocated() / 2**20
+    return result
+
+
+def main() -> None:
+    frame_path = sorted(glob.glob(str(DATA / "sr/indoor/person/fold0/test/images/*.jpg")))[0]
+    frame = cv2.resize(cv2.imread(frame_path), (IMG_SIZE, IMG_SIZE))
+    torch.set_num_threads(CPU_THREADS)
+
+    out = {"gpu": torch.cuda.get_device_name(0), "torch": torch.__version__, "imgsz": IMG_SIZE, "models": {}}
+    for name in MODELS:
+        model_cls = RTDETR if name.startswith("rtdetr") else YOLO
+        reference = model_cls(f"{name}.pt")
+        entry = {
+            "params_M": sum(p.numel() for p in reference.model.parameters()) / 1e6,
+            "gflops": get_flops(reference.model, IMG_SIZE),
+        }
+        for device, half, n, warmup in SETTINGS:
+            key = f"{device}_{'fp16' if half else 'fp32'}"
+            entry[key] = benchmark_setting(model_cls, name, frame, device, half, n, warmup)
+            print(
+                name,
+                key,
+                round(entry[key]["model_only_ms"]["mean"], 2),
+                round(entry[key]["end_to_end_ms"]["mean"], 2),
+                flush=True,
+            )
+        out["models"][name] = entry
+
+    RESULTS.mkdir(exist_ok=True)
+    (RESULTS / "latency.json").write_text(json.dumps(out, indent=1))
+
+
+if __name__ == "__main__":
+    main()
