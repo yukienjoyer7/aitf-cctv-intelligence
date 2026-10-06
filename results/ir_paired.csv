@@ -1,0 +1,15 @@
+task,A,B,diff,ci,folds_positive
+gender,train rgb test rgb,train rgb test gray,0.045236094029206655,0.017637064118037064,5
+gender,train rgb test rgb,train rgb test irsim,0.5685613061102041,0.0587599422187777,5
+gender,train gray test gray,train rgb test gray,0.04363941383044863,0.018833316522084836,5
+gender,train irsim test irsim,train rgb test irsim,0.547583662987291,0.05801055714514821,5
+gender,train irsim test irsim,train rgb test rgb,-0.02097764312291308,0.005355442677530359,0
+gender,train gray test gray,train rgb test rgb,-0.001596680198758027,0.009191736152343838,2
+gender,train irsim test irsim,train gray test gray,-0.019380962924155053,0.009381490678190347,0
+person,train rgb test rgb,train rgb test gray,0.039599038468015046,0.009867617506193575,5
+person,train rgb test rgb,train rgb test irsim,0.5910779973320128,0.0278674624115195,5
+person,train gray test gray,train rgb test gray,0.04329356087901255,0.012782594317112041,5
+person,train irsim test irsim,train rgb test irsim,0.5772978082319226,0.025431880491336923,5
+person,train irsim test irsim,train rgb test rgb,-0.013780189100090223,0.006514060278422248,0
+person,train gray test gray,train rgb test rgb,0.003694522410997503,0.00928947199001741,3
+person,train irsim test irsim,train gray test gray,-0.017474711511087725,0.007209571529275263,0
