@@ -76,11 +76,7 @@ def write_fold(task_dir, fold, split, items, mapping):
     (folder / "labels").mkdir(parents=True)
     for frame_id, image, boxes in items:
         (folder / "images" / f"f{frame_id:04d}.jpg").symlink_to(image.resolve())
-        lines = "".join(
-            f"{mapping[name]} " + " ".join(f"{x:.6f}" for x in box) + "\n"
-            for name, box in boxes
-            if name in mapping
-        )
+        lines = "".join(f"{mapping[name]} " + " ".join(f"{x:.6f}" for x in box) + "\n" for name, box in boxes if name in mapping)
         (folder / "labels" / f"f{frame_id:04d}.txt").write_text(lines)
 
 
@@ -103,8 +99,7 @@ def main() -> None:
         manifest[dataset] = {
             "n": len(frames),
             "folds": {
-                k: {"n_train": len(tr), "n_test": len(te), "test_ids": [te[0][0], te[-1][0]]}
-                for k, (tr, te) in enumerate(folds)
+                k: {"n_train": len(tr), "n_test": len(te), "test_ids": [te[0][0], te[-1][0]]} for k, (tr, te) in enumerate(folds)
             },
         }
 

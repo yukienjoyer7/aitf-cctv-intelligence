@@ -129,9 +129,7 @@ def plot_class_counts() -> None:
         ax.set_xlim(1, max(per_class.values()) * 8)
         ax.set_title(f"{dataset.capitalize()} ({sum(per_class.values()):,} boxes)", loc="left")
         ax.set_xlabel("boxes (log scale)")
-    fig.suptitle(
-        "Class balance: windows/doors (gray) dominate, especially outdoors", x=0.01, ha="left", fontsize=13
-    )
+    fig.suptitle("Class balance: windows/doors (gray) dominate, especially outdoors", x=0.01, ha="left", fontsize=13)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     save(fig, "sr_03_class_counts.png")
 
@@ -149,9 +147,7 @@ def plot_model_results(
         for i, model in enumerate(MODELS):
             r = rows[rows.model == model].iloc[0]
             per_fold = (
-                runs[
-                    (runs.dataset == dataset) & (runs.task == task) & (runs.model == model) & runs.fold.isin(folds)
-                ]
+                runs[(runs.dataset == dataset) & (runs.task == task) & (runs.model == model) & runs.fold.isin(folds)]
                 .sort_values("fold")
                 .map50_95
             )
@@ -163,9 +159,7 @@ def plot_model_results(
                 np.full(len(per_fold), i) + np.linspace(-0.14, 0.14, len(per_fold)),
                 per_fold, s=14, color="white", ec=INK2, lw=0.8, zorder=3,
             )  # fmt: skip
-            ax.text(
-                i, 0.02, f"{r.map50_95:.2f}", ha="center", color="white", fontsize=11, fontweight="bold", zorder=4
-            )
+            ax.text(i, 0.02, f"{r.map50_95:.2f}", ha="center", color="white", fontsize=11, fontweight="bold", zorder=4)
         ax.set_xticks(range(3), [MODEL_LABELS[m] for m in MODELS], rotation=15)
         ax.set_title(f"{task} ({n_folds} folds)", loc="left", fontsize=11.5)
         ax.grid(axis="y", color=GRID, zorder=0)
@@ -183,12 +177,7 @@ def plot_outdoor_fold_density(runs: pd.DataFrame) -> None:
     for k in range(5):
         label_dir = DATA / "sr/outdoor/person" / f"fold{k}/test/labels"
         people.append(sum(len(path.read_text().splitlines()) for path in label_dir.glob("*.txt")))
-    by_fold = (
-        runs[(runs.dataset == "outdoor") & (runs.task == "person")]
-        .groupby(["fold", "model"])
-        .map50_95.mean()
-        .unstack()
-    )
+    by_fold = runs[(runs.dataset == "outdoor") & (runs.task == "person")].groupby(["fold", "model"]).map50_95.mean().unstack()
 
     fig, axs = plt.subplots(1, 2, figsize=(10.5, 4))
     axs[0].bar([f"Fold {k}" for k in range(5)], people, color=GRAY, width=0.6, zorder=2)
@@ -256,9 +245,7 @@ def plot_latency() -> None:
         ax.set_ylim(0, ax.get_ylim()[1] * 1.12)
     axs[0].set_ylabel("End-to-end latency (ms, lower is better)")
     axs[0].legend(frameon=False, loc="upper left")
-    fig.suptitle(
-        "Latency, batch 1, 512x512 (mean +/- std; pre + inference + post)", x=0.01, ha="left", fontsize=12
-    )
+    fig.suptitle("Latency, batch 1, 512x512 (mean +/- std; pre + inference + post)", x=0.01, ha="left", fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     save(fig, "sr_07_latency_bars.png")
 

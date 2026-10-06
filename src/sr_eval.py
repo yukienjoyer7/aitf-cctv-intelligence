@@ -122,9 +122,7 @@ def main() -> None:
 
     # --- evaluate the final-epoch weights on the held-out block --------------------------------------------
     model = model_cls(str(ROOT / "runs_sr" / tag / "weights" / "last.pt"))
-    metrics = model.val(
-        data=str(data_yaml), split="test", imgsz=a.imgsz, batch=8, conf=0.001, plots=False, verbose=False
-    )
+    metrics = model.val(data=str(data_yaml), split="test", imgsz=a.imgsz, batch=8, conf=0.001, plots=False, verbose=False)
     label_dir = data_yaml.parent / "test" / "labels"
     n_instances = count_test_instances(label_dir, len(names))
     # Per-class AP only exists for classes present in the test block (absent classes are skipped by Ultralytics).
