@@ -1,0 +1,12 @@
+id: smoking_hf_img_final
+source_url: https://huggingface.co/datasets/ccclllwww/smoking_img_final
+source_type: public_real
+license: unspecified
+license_review_status: pending
+local_root: null
+annotation_unit: image
+label_schema: [not_smoking, smoking]
+split_group_key: null
+split_manifest: null
+version: b4075dba13e7d75a7b90007fb7b59d853b442486
+notes: "Candidate only; no published dataset card, image provenance or reuse license was found. Labels describe whole images. Do not train until rights and splits are reviewed."

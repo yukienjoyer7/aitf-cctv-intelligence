@@ -1,6 +1,6 @@
-"""Figures for the CCTV-SR deck -> results/fig_sr/*.png (200 dpi).
+"""Figures for the CCTV-SR deck -> results/cctv_sr/fig_sr/*.png (200 dpi).
 
-Run `aggregate_sr.py` first (reads results/sr_summary.csv) and keep the datasets in data/.
+Run `aggregate_sr.py` first (reads results/cctv_sr/sr_summary.csv) and keep the datasets in data/.
 Colours: blue = YOLO26n, orange = YOLO26s, aqua = RT-DETR-L in every model chart; in the example frames and
 the class-balance chart orange/blue mean Female/Male and gray means window/door.
 
@@ -8,9 +8,9 @@ the class-balance chart orange/blue mean Female/Male and gray means window/door.
     sr_03     class balance (log scale)
     sr_04/05  mAP50-95 per task: bar = mean +/- 95% CI over folds, dots = individual folds
     sr_06     outdoor: people per held-out block and person mAP50-95 by fold
-    sr_07     latency bars (from results/latency.json)
+    sr_07     latency bars (from results/cctv_sr/latency.json)
 
-Usage: python src/make_figures_sr.py
+Usage: python benchmarks/cctv_sr/make_figures_sr.py
 """
 
 import glob
@@ -22,9 +22,6 @@ matplotlib.use("Agg")  # no display needed
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.patches import Rectangle
-from PIL import Image
-
 from common import (
     DATA,
     DATASETS,
@@ -36,6 +33,8 @@ from common import (
     class_names,
     read_label_file,
 )
+from matplotlib.patches import Rectangle
+from PIL import Image
 
 OUT = RESULTS / "fig_sr"
 
@@ -213,7 +212,7 @@ def plot_outdoor_fold_density(runs: pd.DataFrame) -> None:
 
 # --- 07: latency -----------------------------------------------------------------------------------------------
 def plot_latency() -> None:
-    """End-to-end latency (mean +/- std) per model on GPU fp32/fp16 and CPU, from results/latency.json."""
+    """End-to-end latency (mean +/- std) per model on GPU fp32/fp16 and CPU, from results/cctv_sr/latency.json."""
     latency = json.load(open(RESULTS / "latency.json"))["models"]
     fig, axs = plt.subplots(1, 2, figsize=(10, 4.2), gridspec_kw={"width_ratios": [2, 1]})
     panels = [

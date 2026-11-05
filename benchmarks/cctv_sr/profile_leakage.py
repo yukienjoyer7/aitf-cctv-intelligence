@@ -8,7 +8,7 @@ Reports, for one dataset:
   * FRAME LEAKAGE: how close each valid/test frame is to its nearest train frame, in pixels and in frame ids,
     compared with the pixel difference between two random train frames.
 
-Usage: python src/profile_leakage.py data/indoor      (or data/outdoor)
+Usage: python benchmarks/cctv_sr/profile_leakage.py data/indoor      (or data/outdoor)
 """
 
 import re
@@ -16,9 +16,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
-
 from common import SPLITS, class_names, iou, is_person, read_label_file, xywh_to_xyxy
+from PIL import Image
 
 STATIC_IOU = 0.7  # "same position" threshold for static boxes
 THUMB = 128  # frames are compared as 128x128 grayscale thumbnails

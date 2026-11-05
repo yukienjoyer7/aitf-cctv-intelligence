@@ -1,0 +1,3 @@
+# Repository guardrails
+
+Follow `/home/dio/.codex/RTK.md` when available. Preserve recorded CCTV-SR evidence and its experiment semantics; do not silently change folds, labels, thresholds, seeds, epochs, checkpoint selection or aggregation. Keep new task work explicitly planned until supported by real evidence. Follow [data protocol](docs/DATA_PROTOCOL.md) and [model handoff](docs/MODEL_HANDOFF.md); do not commit media, datasets, weights, credentials or private data. Model development belongs here; deployment and event management do not. Offline checks must not train, download or call external generators.

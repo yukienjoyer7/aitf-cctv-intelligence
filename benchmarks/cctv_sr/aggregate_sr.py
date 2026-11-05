@@ -1,14 +1,14 @@
-"""Aggregate the per-run JSON files in results/sr/ into summary tables.
+"""Aggregate the per-run JSON files in results/cctv_sr/sr/ into summary tables.
 
 Writes:
-    results/sr_summary.csv  mean +/- 95% CI over folds, per (dataset, task, model)
-    results/sr_paired.csv   paired per-fold differences between models
+    results/cctv_sr/sr_summary.csv  mean +/- 95% CI over folds, per (dataset, task, model)
+    results/cctv_sr/sr_paired.csv   paired per-fold differences between models
 
 Fairness rule: for each (dataset, task) only folds where ALL THREE models finished are used, so every model is
 averaged over the same folds. This matters because the benchmark was stopped early and some folds are missing.
 Intervals are across folds (the independent units), not across images or seeds. A CI needs >= 3 folds.
 
-Usage: python src/aggregate_sr.py
+Usage: python benchmarks/cctv_sr/aggregate_sr.py
 """
 
 import glob
@@ -16,9 +16,8 @@ import json
 
 import numpy as np
 import pandas as pd
-from scipy import stats
-
 from common import MODELS, RESULTS
+from scipy import stats
 
 METRICS = ["map50", "map50_95", "class_acc_matched", "train_min"]
 # (A, B): reported as A minus B

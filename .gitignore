@@ -10,8 +10,9 @@ __pycache__/
 *.pt
 *.zip
 
-# datasets: not redistributed here (Roboflow CC BY 4.0 exports; footage of students). Re-create with src/prep_*.py
-/data/
+# datasets: not redistributed here (Roboflow CC BY 4.0 exports; footage of students). Re-create with benchmarks/cctv_sr/prep_sr.py
+/data/*
+!/data/README.md
 
 # figures that contain raw CCTV frames of people
 results/fig_ppt/01_dataset_example.png
@@ -19,3 +20,22 @@ results/fig_ppt/03_ir_examples.png
 results/fig_ppt/04_ir_degradation_steps.png
 results/fig_sr/sr_01_indoor_example.png
 results/fig_sr/sr_02_outdoor_example.png
+results/cctv_sr/fig_sr/sr_01_indoor_example.png
+results/cctv_sr/fig_sr/sr_02_outdoor_example.png
+
+# Local model artifacts, media, and credentials
+/artifacts/*
+!/artifacts/README.md
+*.pth
+*.ckpt
+*.onnx
+*.engine
+*.safetensors
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+.env
+.env.*
+!.env.example

@@ -14,7 +14,7 @@ Output (images are symlinks to the originals, labels are rewritten):
     data/sr/<dataset>/<task>/fold<k>/{train,test}/{images,labels}/  and  fold<k>/data.yaml
     data/sr/manifest.json   fold sizes and test frame-id ranges
 
-Usage: python src/prep_sr.py     (expects the unzipped exports in data/indoor and data/outdoor)
+Usage: python benchmarks/cctv_sr/prep_sr.py     (expects the unzipped exports in data/indoor and data/outdoor)
 """
 
 import json
@@ -22,7 +22,6 @@ import re
 import shutil
 
 import numpy as np
-
 from common import DATA, DATASETS, SPLITS, class_names, is_person, parse_label_line
 
 OUT = DATA / "sr"

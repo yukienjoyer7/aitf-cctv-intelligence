@@ -3,7 +3,7 @@
 Reports images and boxes per provided split, polygon labels, empty images, per-class box counts, boxes per image
 and box size in pixels (sqrt of box area, on the 512x512 image) overall and per class.
 
-Usage: python src/profile_dataset.py data/indoor      (or data/outdoor)
+Usage: python benchmarks/cctv_sr/profile_dataset.py data/indoor      (or data/outdoor)
 """
 
 import sys
@@ -11,7 +11,6 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
-
 from common import IMG_SIZE, SPLITS, class_names, read_label_file
 
 

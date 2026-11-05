@@ -6,10 +6,10 @@ Design choices that keep the evaluation leakage-free:
   * mAP50 / mAP50-95 are threshold-free, so no confidence threshold is chosen on test data.
   * The only fixed threshold is conf=0.25 for the class-accuracy metric, chosen in advance.
 
-Output: results/sr/<dataset>_<task>_<model>_f<fold>_s<seed>.json  (skipped if it already exists, so the
+Output: results/cctv_sr/sr/<dataset>_<task>_<model>_f<fold>_s<seed>.json  (skipped if it already exists, so the
 orchestrator `run_sr.sh` can be stopped and restarted). Checkpoints are deleted after evaluation to save disk.
 
-Usage: python src/sr_eval.py --dataset indoor --task gender --model yolo26s --fold 0 --seed 0 --epochs 100
+Usage: python benchmarks/cctv_sr/sr_eval.py --dataset indoor --task gender --model yolo26s --fold 0 --seed 0 --epochs 100
 """
 
 import argparse
@@ -17,11 +17,7 @@ import json
 import shutil
 import time
 
-import torch
 import yaml
-from torchvision.ops import box_iou
-from ultralytics import RTDETR, YOLO
-
 from common import DATA, RESULTS, ROOT
 
 CLASS_ACC_CONF = 0.25  # fixed confidence for the class-accuracy metric
@@ -56,6 +52,9 @@ def matched_class_accuracy(model, data_yaml, imgsz: int) -> tuple[float, int]:
     Each prediction (highest confidence first) is matched, ignoring class, to the unused ground-truth box it
     overlaps most (IoU >= MATCH_IOU). Returns (accuracy, number of matched predictions).
     """
+    import torch
+    from torchvision.ops import box_iou
+
     test_dir = data_yaml.parent / "test"
     correct = matched = 0
     for image in sorted((test_dir / "images").glob("*.jpg")):
@@ -89,6 +88,8 @@ def matched_class_accuracy(model, data_yaml, imgsz: int) -> tuple[float, int]:
 
 def main() -> None:
     a = parse_args()
+    from ultralytics import RTDETR, YOLO
+
     tag = f"{a.dataset}_{a.task}_{a.model}_f{a.fold}_s{a.seed}"
     result_path = RESULTS / "sr" / f"{tag}.json"
     if result_path.exists():

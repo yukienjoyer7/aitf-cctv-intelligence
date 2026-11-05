@@ -1,0 +1,12 @@
+id: khan_smoking_2020
+source_url: https://data.mendeley.com/datasets/7b52hhzs3r/1
+source_type: public_real
+license: CC-BY-4.0 # publisher listing; underlying image rights not yet verified
+license_review_status: pending
+local_root: null
+annotation_unit: image
+label_schema: [smoking, non_smoking]
+split_group_key: source_image_or_recording
+split_manifest: null
+version: "1"
+notes: "Candidate; web-sourced images, crop labels and source rights need review before training."

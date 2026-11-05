@@ -4,9 +4,9 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"
-RESULTS = ROOT / "results"
+RESULTS = ROOT / "results" / "cctv_sr"
 
 DATASETS = ("indoor", "outdoor")
 SPLITS = ("train", "valid", "test")  # the splits that ship with the Roboflow export

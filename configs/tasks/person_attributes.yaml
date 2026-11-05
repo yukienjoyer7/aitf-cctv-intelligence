@@ -1,0 +1,11 @@
+task_id: person_attributes
+status: benchmark_only
+problem_type: detection
+unit_of_prediction: frame_box
+labels: [person, gender, posture, allclass]
+input: {type: rgb_frame, preprocessing: benchmark_specific}
+backbone: benchmark_comparison
+weights: null
+training_data: []
+evaluation: {real_test: benchmark_time_blocks, synthetic_stress_test: not_evaluated}
+notes: "Labels are experiment-specific mappings, not a student classifier; no production weights."

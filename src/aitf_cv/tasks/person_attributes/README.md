@@ -1,0 +1,3 @@
+# Person attributes and static objects
+
+Status: benchmark_only. The [historical benchmark](../../../../benchmarks/cctv_sr/README.md) predicts frame-level boxes using its original `person`, `gender`, `posture` and `allclass` mappings. Person detection is a candidate upstream primitive, not an independently validated student classifier. Gender labels reflect annotations, not reliable identity. Static window/door labels remain benchmark-specific. Assess AP and matched classification accuracy with the original leakage-aware protocol and its limitations. YOLO26s is a provisional candidate; other detectors remain supported. No production weights are available.

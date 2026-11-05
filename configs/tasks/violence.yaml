@@ -1,0 +1,12 @@
+task_id: violence
+status: planned
+problem_type: temporal_action_classification
+unit_of_prediction: clip
+labels: [non_violent, violent]
+ambiguity: abstain_or_review
+input: {type: rgb_clip, preprocessing: to_be_defined, sampling: experimental}
+backbone: movinet_a0_base_pytorch_candidate
+weights: null
+training_data: []
+evaluation: {real_test: required, synthetic_stress_test: supplementary}
+notes: "A local exploratory checkpoint and validation-selected threshold exist; model, sampling and thresholds are not deployment-ready."

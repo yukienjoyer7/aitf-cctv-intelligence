@@ -1,0 +1,4 @@
+# Optional research training dependencies; install after requirements.txt.
+timm==1.0.30
+scikit-learn==1.9.1
+MoViNet-pytorch @ git+https://github.com/Atze00/MoViNet-pytorch.git@c2d1edf48fc6c5259707f9d833f22171b4f63493

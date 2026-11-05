@@ -6,7 +6,7 @@ the source of the "723 conflicting pairs" figure in the deck.
 
 Counts are over PAIRS of boxes (three stacked boxes = 3 pairs), across all provided splits.
 
-Usage: python src/check_label_conflicts.py            (checks data/indoor and data/outdoor)
+Usage: python benchmarks/cctv_sr/check_label_conflicts.py            (checks data/indoor and data/outdoor)
 """
 
 from itertools import combinations

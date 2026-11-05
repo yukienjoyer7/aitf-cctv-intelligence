@@ -1,0 +1,12 @@
+id: surveillance_camera_fight
+source_url: https://github.com/seymanurakti/fight-detection-surv-dataset
+source_type: public_real
+license: MIT # repository listing; underlying YouTube and source dataset rights not yet verified
+license_review_status: pending
+local_root: null
+annotation_unit: clip
+label_schema: [non_violent, violent]
+split_group_key: source_recording_id
+split_manifest: null
+version: ff83b7c521e5ca4eb67a212cc42dbc54f39d6290
+notes: "Candidate; audit source index ambiguities, upstream rights and near-duplicates before splitting."

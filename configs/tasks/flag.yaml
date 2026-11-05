@@ -1,0 +1,14 @@
+task_id: flag
+status: planned
+problem_type: detection_and_conditional_classification
+unit_of_prediction: frame_and_verified_flag_crop
+stages:
+  detector: {type: class_agnostic_flag_detection, weights: null}
+  classifier: {labels: [indonesian, other], weights: null}
+alternatives: [single_stage_multiclass_detection]
+pipeline_outcomes: [indonesian, other, no_flag, unknown]
+input: {type: rgb_frame_and_verified_flag_crop, preprocessing: to_be_defined}
+backbone: to_be_selected
+training_data: []
+evaluation: {real_test: required, synthetic_stress_test: supplementary}
+notes: "Not trained; unknown requires abstention; no calibrated threshold exists."

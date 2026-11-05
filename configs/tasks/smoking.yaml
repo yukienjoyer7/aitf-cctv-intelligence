@@ -1,0 +1,12 @@
+task_id: smoking
+status: planned
+problem_type: event_recognition
+unit_of_prediction: frame_or_clip_under_study
+labels: [non_smoking, smoking]
+ambiguity: abstain_or_review
+input: {type: rgb_frame_or_person_roi_or_clip, preprocessing: to_be_defined}
+backbone: mobilenetv4_conv_small_candidate
+weights: null
+training_data: []
+evaluation: {real_test: required, synthetic_stress_test: supplementary}
+notes: "MobileNetV4 Conv-Small is the selected candidate; an exploratory checkpoint and validation-selected threshold exist locally; neither is deployment-ready."

@@ -6,12 +6,12 @@ For each model and setting (GPU fp32, GPU fp16, CPU fp32) it reports, over many 
   * mean / std / median / p95, FPS, peak GPU memory, parameters and GFLOPs.
 GPU timings call cuda.synchronize() around every iteration so queued kernels are included.
 
-Provenance note: results/latency.json was produced by an earlier revision of this script that loaded fold-0
+Provenance note: results/cctv_sr/latency.json was produced by an earlier revision of this script that loaded fold-0
 weights from a pilot experiment (2-class head) and a pilot frame. Latency depends on the architecture, not on the
 trained weight values, so this version uses the pretrained COCO checkpoints and a CCTV-SR frame instead; the
 numbers are expected to agree up to run-to-run noise (laptop GPU, so thermal throttling is possible).
 
-Usage: python src/latency.py        (needs a GPU; run with nothing else using it)
+Usage: python benchmarks/cctv_sr/latency.py        (needs a GPU; run with nothing else using it)
 """
 
 import glob
@@ -21,10 +21,9 @@ import time
 
 import cv2
 import torch
+from common import DATA, IMG_SIZE, MODELS, RESULTS
 from ultralytics import RTDETR, YOLO
 from ultralytics.utils.torch_utils import get_flops
-
-from common import DATA, IMG_SIZE, MODELS, RESULTS
 
 # (device, half precision, timed iterations, warm-up iterations); CPU is slow, so fewer iterations
 SETTINGS = [("cuda", False, 300, 50), ("cuda", True, 300, 50), ("cpu", False, 40, 5)]

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Run the full CCTV-SR benchmark: every (dataset, fold, task, model, seed) job through src/sr_eval.py.
-# Each job writes results/sr/<tag>.json and is skipped if that file exists, so this script can be stopped and
+# Run the full CCTV-SR benchmark: every (dataset, fold, task, model, seed) job through benchmarks/cctv_sr/sr_eval.py.
+# Each job writes results/cctv_sr/sr/<tag>.json and is skipped if that file exists, so this script can be stopped and
 # restarted at any time (this is how the benchmark was run). Output goes to logs/sr.log.
 #
 # Budget notes:
@@ -9,7 +9,7 @@
 #   * RT-DETR-L uses batch 4 because batch 8 ran out of memory on the 6 GB GPU; the YOLO models use batch 8.
 # NOTE: in practice only indoor seed 0 and outdoor seed 0 (folds 0-3 for most tasks) were completed before the
 # run was stopped; the later calls below are the intended full plan.
-cd "$(dirname "$0")/.." || exit 1
+cd "$(dirname "$0")/../.." || exit 1
 mkdir -p logs
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True  # reduces GPU memory fragmentation
 
@@ -22,7 +22,7 @@ run() {
       for model in yolo26n yolo26s rtdetr-l; do
         batch=8
         [ "$model" = rtdetr-l ] && batch=4
-        .venv/bin/python src/sr_eval.py --dataset "$dataset" --task "$task" --model "$model" \
+        .venv/bin/python benchmarks/cctv_sr/sr_eval.py --dataset "$dataset" --task "$task" --model "$model" \
           --fold "$fold" --seed "$seed" --epochs "$epochs" --batch "$batch" >> logs/sr.log 2>&1
       done
     done

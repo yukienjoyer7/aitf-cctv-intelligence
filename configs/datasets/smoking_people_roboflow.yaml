@@ -1,0 +1,12 @@
+id: smoking_people_roboflow
+source_url: https://universe.roboflow.com/thanyalak-bf8xn/smoking-people-jbes1/dataset/2
+source_type: public_real
+license: CC-BY-4.0 # as listed; source image rights and annotation quality still need review
+license_review_status: pending
+local_root: null
+annotation_unit: bbox
+label_schema: [cigarette, non smoking person, smoking person]
+split_group_key: null
+split_manifest: null
+version: "2"
+notes: "Candidate only. Public page lists person-specific classes; actual box geometry, labels, source rights, and split independence not yet verified."

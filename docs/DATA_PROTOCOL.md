@@ -1,0 +1,9 @@
+# Data and evaluation protocol
+
+AITF has insufficient annotated task data. Public real data are the primary training and internal validation source; reserve genuinely held-out real test recordings where permissions allow. Before acquisition or use, verify source, license, annotation definitions, privacy permissions, domain match, subject and camera overlap. Candidate datasets are not approved acquisitions. Do not commit media, student footage or private data.
+
+Record `public_train`, `public_val` and `public_test` separately. Split by source recording, camera/session and other relevant subject or actor groups, never by random adjacent frames. Audit duplicate videos and neighboring frames. Tune models and thresholds only on training/validation material; a test used for selection ceases to be independent. Report metrics by domain and split, with uncertainty, class support and missing cases. Target camera evaluation requires separate reliable annotations; no field accuracy is currently established.
+
+Seedance via OpenRouter is supplementary controlled stress testing, not primary real data and not default training data. Keep `synthetic_dev` for iteration and a frozen `synthetic_test` unused in selection. Record scenario prompt, generator/model version, settings if known, clip ID, claimed label, reviewer-verified label, QC status and provenance. Generated text is not ground truth: reviewers must verify every test clip, marking ambiguous or rejected where appropriate. Report synthetic stress test results separately from real held-out test and target camera evaluation results.
+
+Use the [registry template](../configs/datasets/registry.example.yaml) for metadata and [data instructions](../data/README.md) for local storage. Historical benchmark limitations and leakage controls are documented separately in the [benchmark protocol](../benchmarks/cctv_sr/README.md).

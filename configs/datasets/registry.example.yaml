@@ -1,0 +1,13 @@
+# Example metadata only, not a claim of acquisition.
+id: example_dataset
+source_url: null
+source_type: public_real # public_real | seedance_synthetic | target_camera
+license: unverified
+license_review_status: pending
+local_root: null
+annotation_unit: null # bbox | image | clip | event
+label_schema: null
+split_group_key: null # video_id | recording_id | camera_id | subject_id
+split_manifest: null
+version: null
+notes: "Metadata template; no data are checked in."
